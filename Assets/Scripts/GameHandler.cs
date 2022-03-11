@@ -37,9 +37,9 @@ public class GameHandler : MonoBehaviour
 
     [SerializeField] Transform bricksParentTransform;
     [SerializeField] Ball ball;
-    [SerializeField] int playerLives, ballCount;
+    [SerializeField] int playerLives;
 
-    private int brickCount;
+    private int brickCount, ballCount = 1;
     #endregion
 
     private void Awake()
@@ -49,7 +49,7 @@ public class GameHandler : MonoBehaviour
 
     private void Start()
     {
-        brickCount = bricksParentTransform.childCount;
+        brickCount = bricksParentTransform.GetComponentsInChildren<Brick>().Length;
         StartCoroutine(WaitForInitialTap_Routine());
     }
 
@@ -58,7 +58,7 @@ public class GameHandler : MonoBehaviour
         if (--playerLives > 0)
         {
             ballCount++;
-            ball.Respawn();
+            ball.ResetPose();
             StartCoroutine(WaitForInitialTap_Routine());
         }
         else
@@ -86,6 +86,8 @@ public class GameHandler : MonoBehaviour
     {
         int touchCount = 0;
 
+        yield return new WaitForSeconds(1f);
+
         while (true)
         {
             touchCount = Input.touchCount;
@@ -94,13 +96,24 @@ public class GameHandler : MonoBehaviour
             {
                 if (Input.GetTouch(0).phase == TouchPhase.Ended)
                 {
-                    isBallMoving = true;
-                    ball.StartMoving();
+                    ApplyVelocity_Ball();
                     yield break;
                 }
             }
 
+            if (Input.GetKeyUp(KeyCode.S))
+            {
+                ApplyVelocity_Ball();
+                yield break;
+            }
+
             yield return null;
+        }
+
+        void ApplyVelocity_Ball()
+        {
+            isBallMoving = true;
+            ball.ApplyVelocity();
         }
     }
 }

@@ -5,8 +5,8 @@ public class ColorGradientHandler : MonoBehaviour
     #region Variables
     internal static ColorGradientHandler instance;
 
-    [SerializeField] Gradient healthGradient;
-    [SerializeField] int maxHealth;
+    [SerializeField] Gradient brickGradient;
+    [SerializeField] int maxHealth;//this is maximum health that a brick can ever get
     #endregion
 
     private void Awake()
@@ -16,6 +16,6 @@ public class ColorGradientHandler : MonoBehaviour
 
     internal Color GetColor(int currentHealth)
     {
-        return healthGradient.Evaluate(currentHealth / (float)maxHealth);
+        return brickGradient.Evaluate(currentHealth / (float)maxHealth);
     }
 }

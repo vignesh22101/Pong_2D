@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Brick
   - Ground
+  - MultiBall
+  - BallGenerator
+  - DamageRandomizer
   layers:
   - Default
   - TransparentFX
