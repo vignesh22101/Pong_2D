@@ -1,6 +1,6 @@
 using UnityEngine;
 
-enum Powerups { MultiBall, BallGenerator, DamageRandomizer, None };
+public enum Powerups { MultiBall, BallGenerator, DamageRandomizer, None };
 
 public class Player : MonoBehaviour
 {
@@ -41,25 +41,14 @@ public class Player : MonoBehaviour
 
 #if UNITY_EDITOR
         if (Input.GetKeyUp(KeyCode.M))
-        {
-            //multiball
             OnPowerup?.Invoke(Powerups.MultiBall);
-        }
 
         if (Input.GetKeyUp(KeyCode.B))
-        {
-            //ball generator
             OnPowerup?.Invoke(Powerups.BallGenerator);
-        }
 
         if (Input.GetKeyUp(KeyCode.R))
-        {
-            //DamageRandomizer
             OnPowerup.Invoke(Powerups.DamageRandomizer);
-        }
 #endif
-
-
 
         if (!GameHandler.instance.isBallMoving)
         {
@@ -98,22 +87,13 @@ public class Player : MonoBehaviour
         Powerups encounteredPowerup;
 
         if (collision.CompareTag("MultiBall"))
-        {
             encounteredPowerup = Powerups.MultiBall;
-        }
         else if (collision.CompareTag("BallGenerator"))
-        {
             encounteredPowerup = Powerups.BallGenerator;
-        }
         else if (collision.CompareTag("DamageRandomizer"))
-        {
             encounteredPowerup = Powerups.DamageRandomizer;
-        }
         else
-        {
-            //no powerup is encountered
-            return;
-        }
+            return; //no powerup is encountered
 
         //powerup is encountered
         OnPowerup?.Invoke(encounteredPowerup);

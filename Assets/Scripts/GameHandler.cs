@@ -6,6 +6,7 @@ public class GameHandler : MonoBehaviour
     #region Variables
     internal static GameHandler instance;
     internal bool isBallMoving;
+    internal Brick[] bricks;
     internal int BallCount
     {
         get => ballCount;
@@ -30,15 +31,16 @@ public class GameHandler : MonoBehaviour
 
             if (value == 0)
             {
-                LevelFinished();
+                LevelCompleted();
             }
         }
     }
 
-    [SerializeField] Transform bricksParentTransform;
-    [SerializeField] Ball ball;
-    [SerializeField] int playerLives;
+    [SerializeField] private Transform bricksParentTransform, lifesParentTransform;
+    [SerializeField] private Ball ball;
+    [SerializeField] private int playerLives;
 
+    private bool isLevelComplete;
     private int brickCount, ballCount = 1;
     #endregion
 
@@ -49,37 +51,11 @@ public class GameHandler : MonoBehaviour
 
     private void Start()
     {
-        brickCount = bricksParentTransform.GetComponentsInChildren<Brick>().Length;
+        bricks = bricksParentTransform.GetComponentsInChildren<Brick>();
+        brickCount = bricks.Length;
+
+        PanelsHandler.instance.Modify_PauseBtn(true);
         StartCoroutine(WaitForInitialTap_Routine());
-    }
-
-    private void Respawn_Ball()
-    {
-        if (--playerLives > 0)
-        {
-            ballCount++;
-            ball.ResetPose();
-            StartCoroutine(WaitForInitialTap_Routine());
-        }
-        else
-        {
-            GameOver();
-        }
-    }
-
-    private void GameOver()
-    {
-        print("GameOver");
-    }
-
-    private void LevelFinished()
-    {
-        print("LevelFinished");
-    }
-
-    private void Retry()
-    {
-        //reload the scene here
     }
 
     private IEnumerator WaitForInitialTap_Routine() //Tap to start => ball starts moving from the player 
@@ -115,5 +91,50 @@ public class GameHandler : MonoBehaviour
             isBallMoving = true;
             ball.ApplyVelocity();
         }
+    }
+
+    private void Respawn_Ball()
+    {
+        if (--playerLives > 0)
+        {
+            ballCount++;
+            ball.ResetPose();
+            StartCoroutine(WaitForInitialTap_Routine());
+        }
+        else
+        {
+            GameOver();
+        }
+
+        UpdateLives_UI();
+    }
+
+    private void UpdateLives_UI()
+    {
+        for (int i = 0; i < lifesParentTransform.childCount; i++)
+        {
+            lifesParentTransform.GetChild(i).gameObject.SetActive(i < playerLives);
+        }
+    }
+
+    private void GameOver()
+    {
+        if (!isLevelComplete)
+        {
+            isBallMoving = false;
+            PanelsHandler.instance.SetPanel(PanelTypes.Gameover_Panel);
+        }
+    }
+
+    private void LevelCompleted()
+    {
+        isLevelComplete = true;
+        PanelsHandler.instance.SetPanel(PanelTypes.LevelComplete_Panel);
+    }
+
+
+    private void OnDestroy()
+    {
+        PanelsHandler.instance.Modify_PauseBtn(false);
     }
 }
