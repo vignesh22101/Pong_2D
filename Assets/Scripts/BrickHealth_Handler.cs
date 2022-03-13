@@ -7,8 +7,8 @@ public class BrickHealth_Handler : MonoBehaviour
     internal static BrickHealth_Handler instance;
 
     [Header("Bricks' health data")]
-    [SerializeField] [Range(1, 100)] private int minHealth;
-    [SerializeField] [Range(1, 100)] private int maxHealth;
+    [SerializeField] [Range(1, 10)] private int minHealth;
+    [SerializeField] [Range(1, 10)] private int maxHealth;
     #endregion
 
     private void Awake()

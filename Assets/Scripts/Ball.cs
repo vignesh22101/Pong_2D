@@ -22,7 +22,8 @@ public class Ball : MonoBehaviour
     private bool isDamageRandomized;
     private Rigidbody2D ball_Rigidbody2D;
     private SpriteRenderer ball_SpriteRenderer;
-    private Coroutine randomDamage_Cor, ballGeneration_Cor;
+    private Coroutine randomDamage_Cor, ballGeneration_Cor, velocityMonitor_Cor;
+    private float target_VelocityMagnitude;
     #endregion
 
     private void Awake()
@@ -33,9 +34,11 @@ public class Ball : MonoBehaviour
 
     private void Start()
     {
-        if (!isMainBall) ApplyVelocity();//Generate balls moves automatically after it is instantiated
+        if (!isMainBall)
+            ApplyVelocity();//Generate balls moves automatically after it is instantiated
 
-        StartCoroutine(VelocityMonitor_Routine());
+        target_VelocityMagnitude = (Vector2.one * initialVelocityStrength).magnitude;
+
         SetColor();
     }
 
@@ -54,6 +57,11 @@ public class Ball : MonoBehaviour
         StopAllCoroutines();
     }
 
+    private void Update()
+    {
+        //Debug.Log($"Velocity magnitude of ball:{ball_Rigidbody2D.velocity.magnitude},ball's name:{name}");
+    }
+
     internal void Initialize_InheritedPowerups()
     {
         if (isDamageRandomized)
@@ -67,7 +75,7 @@ public class Ball : MonoBehaviour
     {
         if (power == Powerups.MultiBall)
         {
-            GenerateBalls(3);
+            GenerateBalls(2);
         }
         else if (power == Powerups.BallGenerator)
         {
@@ -169,7 +177,7 @@ public class Ball : MonoBehaviour
         ball.generateBallOnCollision = generateBallOnCollision;
         ball.Initialize_InheritedPowerups();
 
-        ball.ApplyVelocity();
+        ball.ApplyVelocity_Random();
         GameHandler.instance.BallCount++;
     }
     #endregion 
@@ -177,22 +185,51 @@ public class Ball : MonoBehaviour
     internal void ApplyVelocity()
     {
         ball_Rigidbody2D.velocity = Vector2.one * initialVelocityStrength;
+
+        if (velocityMonitor_Cor != null)
+            StopCoroutine(velocityMonitor_Cor);
+
+        velocityMonitor_Cor = StartCoroutine(VelocityMonitor_Routine());
+    }
+
+    private void ApplyVelocity_Random()
+    {
+        ball_Rigidbody2D.velocity = new Vector2(Random.Range(-initialVelocityStrength, initialVelocityStrength), Random.Range(0, initialVelocityStrength));
     }
 
     /// <summary>
     /// Sometimes the ball moves in a straight line => x or y axis
     /// This movement gets repeated over and over even after number of collisions with bounds/player
-    /// To resolve the issue, this Routine was created
+    /// To resolve the issue and to give ball a constant velocity, this Routine was created
     /// </summary>
-    /// <returns></returns>
     private IEnumerator VelocityMonitor_Routine()
     {
+        Vector2 ball_Velocity;
+
         while (true)
         {
-            if (ball_Rigidbody2D.velocity.x == 0 || ball_Rigidbody2D.velocity.y == 0)
+            ball_Velocity = ball_Rigidbody2D.velocity;
+
+            if (ball_Velocity.x == 0 || ball_Velocity.y == 0)
                 isMovementRepeating = true;
 
-            yield return new WaitForSeconds(5f);
+            if (PercentDifference(ball_Velocity.magnitude, target_VelocityMagnitude) > 10f)
+            {
+                ball_Velocity += new Vector2(ball_Velocity.x / 10f, ball_Velocity.y / 10f);
+                ball_Rigidbody2D.velocity = ball_Velocity;
+            }
+            else if (PercentDifference(ball_Velocity.magnitude, target_VelocityMagnitude) < -10f)
+            {
+                ball_Velocity -= new Vector2(ball_Velocity.x / 10f, ball_Velocity.y / 10f);
+                ball_Rigidbody2D.velocity = ball_Velocity;
+            }
+
+            yield return new WaitForSeconds(.01f);
+        }
+
+        float PercentDifference(float currVal, float targetVal)
+        {
+            return ((targetVal - currVal) / currVal) * 100f;
         }
     }
 
@@ -219,13 +256,14 @@ public class Ball : MonoBehaviour
         }
         else if (collision.transform.CompareTag("Player"))
         {
-            AudioPlayer.instance.PlayOneShot(Audios.Ball_Hit);
 
             if (generateBallOnCollision)
             {
                 GenerateBalls(1);
             }
         }
+
+        AudioPlayer.instance.PlayOneShot(Audios.Ball_Hit);
 
         if (isMovementRepeating)
         {

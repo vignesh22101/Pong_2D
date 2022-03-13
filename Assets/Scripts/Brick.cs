@@ -10,7 +10,9 @@ public class Brick : MonoBehaviour
     private void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-        health = BrickHealth_Handler.instance.GetRandomHealth();
+
+        if (GameHandler.instance.randomize_BrickHealth)
+            health = BrickHealth_Handler.instance.GetRandomHealth();
 
         SetColor();
     }
@@ -23,11 +25,11 @@ public class Brick : MonoBehaviour
         if (health <= 0)
         {
             AudioPlayer.instance.PlayOneShot(Audios.Brick_Death);
-            GameHandler.instance.BrickCount--;
 
+            GameHandler.instance.RemoveBrick(this);
+            GameHandler.instance.Enable_BrickDeathPS(transform.position);
             EnablePowerup();
             Destroy(gameObject);
-            //IMplement Particle effects Here
         }
         else
         {

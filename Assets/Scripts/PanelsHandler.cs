@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public enum PanelTypes { Gameover_Panel, Pause_Panel, LevelComplete_Panel, SettingsPanel };
 
@@ -7,9 +8,14 @@ public class PanelsHandler : MonoBehaviour
     #region Variables
     internal static PanelsHandler instance;
 
-    [SerializeField] private GameObject pauseBtn,panel;
+    [SerializeField] private GameObject pauseBtn, panel, headerBG;
     [SerializeField] private PanelData[] panelDatas;
     [SerializeField] private GameObject[] allBtns, allHeaders;
+
+    [Header("Data for toggling sprites in a button")]
+    [SerializeField] private Button music_Btn;
+    [SerializeField] private Button SFX_Btn;
+    [SerializeField] private Sprite[] music_Sprites, SFX_sprites;
     #endregion
 
     private void Awake()
@@ -57,11 +63,13 @@ public class PanelsHandler : MonoBehaviour
     public void Clicked_MusicBtn()
     {
         AudioPlayer.instance.Change_Music_State();
+        ToggleSprites(music_Btn, music_Sprites);
     }
 
     public void Clicked_SFXBtn()
     {
         AudioPlayer.instance.Change_SFX_State();
+        ToggleSprites(SFX_Btn, SFX_sprites);
     }
 
     public void Clicked_ClosePanelBtn()
@@ -70,9 +78,18 @@ public class PanelsHandler : MonoBehaviour
     }
     #endregion
 
+    private void ToggleSprites(Button button, Sprite[] sprites)
+    {
+        if (button.GetComponent<Image>().sprite == sprites[0])
+            button.GetComponent<Image>().sprite = sprites[1];
+        else
+            button.GetComponent<Image>().sprite = sprites[0];
+    }
+
     internal void ModifyPanelState(bool targetState)
     {
         panel.SetActive(targetState);
+        headerBG.SetActive(targetState);
     }
 
     internal void Modify_PauseBtn(bool targetState)

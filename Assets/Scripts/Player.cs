@@ -65,6 +65,10 @@ public class Player : MonoBehaviour
                 Touch latestTouch = Input.GetTouch(touchCount - 1);
                 input = latestTouch.position.x > screenWidth_Half ? 1 : -1;
             }
+            else
+            {
+                input = 0;
+            }
         }
         else
         {
@@ -97,6 +101,7 @@ public class Player : MonoBehaviour
 
         //powerup is encountered
         OnPowerup?.Invoke(encounteredPowerup);
+        AudioPlayer.instance.PlayOneShot(Audios.Powerup);
         Destroy(collision.gameObject);
     }
 }

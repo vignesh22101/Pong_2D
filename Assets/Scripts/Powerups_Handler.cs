@@ -10,12 +10,12 @@ public class Powerups_Handler : MonoBehaviour
     [SerializeField] private int multiBall_Count;
     [SerializeField] private int ballGenerator_Count, damageRandomizer_Count;
 
-    private Brick[] bricks; 
+    private List<Brick> bricks;
     #endregion
 
     private void Start()
     {
-        bricks = GameHandler.instance.bricks;
+        bricks = GameHandler.instance.bricksList;
         Scatter_Powerups();
     }
 
@@ -23,7 +23,7 @@ public class Powerups_Handler : MonoBehaviour
     {
         int total_Powerups_Count = multiBall_Count + ballGenerator_Count + damageRandomizer_Count;
         List<int> powerups_Spawn_Indexes = new List<int>();
-        int maxIndex = GameHandler.instance.BrickCount;
+        int maxIndex = bricks.Count;
         int randomInt = Random.Range(0, maxIndex);
 
         while (total_Powerups_Count-- > 0)
