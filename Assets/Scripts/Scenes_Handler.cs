@@ -6,7 +6,7 @@ public class Scenes_Handler : MonoBehaviour
     #region Variables
     internal static Scenes_Handler instance;
 
-    [SerializeField] private int homeScene_Index, firstLevel_Index, lastLevel_Index;
+    [SerializeField] private int homeScene_BuildIndex, firstLevel_BuildIndex, lastLevel_BuildIndex;
     #endregion
 
     private void Awake()
@@ -16,27 +16,42 @@ public class Scenes_Handler : MonoBehaviour
 
     private void Start()
     {
-        LoadScene(homeScene_Index);
+        Load_HomeScene();
+    }
+
+    private void AllLevels_Finished()
+    {
+        PanelsHandler.instance.SetPanel(PanelTypes.AllLevelsComplete_Panel);
+    }
+
+    private bool IsLevel_Exists(int targetScene_BuildIndex)
+    {
+        return targetScene_BuildIndex <= lastLevel_BuildIndex;
+    }
+
+    private void LoadScene(int sceneIndex)
+    {
+        SceneManager.LoadScene(sceneIndex);
     }
 
     internal void Load_NextLevel()
     {
-        int next_SceneIndex = SceneManager.GetActiveScene().buildIndex + 1;
+        int nextLevel_BuildIndex = SceneManager.GetActiveScene().buildIndex + 1;
 
-        PlayerPrefs.SetInt("Level", next_SceneIndex);
-
-        LoadLevel_If_Available(next_SceneIndex);
+        if (IsLevel_Exists(nextLevel_BuildIndex))
+            LoadScene(nextLevel_BuildIndex);
+        else
+            AllLevels_Finished();
     }
 
-    private void AllLevel_Finished()
+    internal void LoadLevel(int level_Index)
     {
-        print("Congratulations, you have finished all the levels,Let's play again from the start");
-        LoadScene(firstLevel_Index);
+        LoadScene(level_Index + firstLevel_BuildIndex - 1);
     }
 
     internal void Load_HomeScene()
     {
-        LoadScene(homeScene_Index);
+        LoadScene(homeScene_BuildIndex);
     }
 
     internal void Reload_CurrentScene()
@@ -44,26 +59,9 @@ public class Scenes_Handler : MonoBehaviour
         LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
-    /// <summary>
-    /// Loads the latest level user has reached
-    /// </summary>
-    internal void Load_LatestLevel()
+    internal int Get_CurrentLevel()
     {
-        int latest_SceneIndex = PlayerPrefs.GetInt("Level", firstLevel_Index);
-
-        LoadLevel_If_Available(latest_SceneIndex);
-    }
-
-    private void LoadLevel_If_Available(int targetSceneIndex)
-    {
-        if (targetSceneIndex <= lastLevel_Index)
-            LoadScene(targetSceneIndex);
-        else
-            AllLevel_Finished();
-    }
-
-    private void LoadScene(int sceneIndex)
-    {
-        SceneManager.LoadScene(sceneIndex);
+        int currentBuildIndex = SceneManager.GetActiveScene().buildIndex;
+        return (currentBuildIndex - firstLevel_BuildIndex) + 1;
     }
 }

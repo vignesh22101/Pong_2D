@@ -1,16 +1,20 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum PanelTypes { Gameover_Panel, Pause_Panel, LevelComplete_Panel, SettingsPanel };
+public enum PanelTypes { Gameover_Panel, Pause_Panel, LevelComplete_Panel, SettingsPanel, AllLevelsComplete_Panel };
 
 public class PanelsHandler : MonoBehaviour
 {
     #region Variables
     internal static PanelsHandler instance;
 
+    [SerializeField] internal GameObject instructionPanel;
+
     [SerializeField] private GameObject pauseBtn, panel, headerBG;
     [SerializeField] private PanelData[] panelDatas;
     [SerializeField] private GameObject[] allBtns, allHeaders;
+    [SerializeField] private TextMeshProUGUI level_HeaderTxt;//displayed at level completion
 
     [Header("Data for toggling sprites in a button")]
     [SerializeField] private Button music_Btn;
@@ -25,6 +29,7 @@ public class PanelsHandler : MonoBehaviour
 
     private void Start()
     {
+        instructionPanel.SetActive(false);
         Modify_PauseBtn(false);
         Clean_Panel();
     }
@@ -32,7 +37,7 @@ public class PanelsHandler : MonoBehaviour
     #region ButtonFunctions
     public void Clicked_HomeBtn()
     {
-        Clean_Panel();
+        ModifyPanelState(false);
         Scenes_Handler.instance.Load_HomeScene();
     }
 
@@ -114,6 +119,8 @@ public class PanelsHandler : MonoBehaviour
                 }
             }
         }
+
+        level_HeaderTxt.text = $"Level  {Scenes_Handler.instance.Get_CurrentLevel()} Completed";
     }
 
     private void Clean_Panel()

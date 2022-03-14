@@ -6,7 +6,7 @@ public class ColorGradient_Handler : MonoBehaviour
     internal static ColorGradient_Handler instance;
 
     [SerializeField] private Gradient brickGradient;
-    [SerializeField] private int maxHealth;//this is maximum health that a brick should ever get 
+    [SerializeField] internal int maxHealth;//this is maximum health that a brick should ever get 
     #endregion
 
     private void Awake()

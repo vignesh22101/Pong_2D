@@ -31,11 +31,11 @@ public class GameHandler : MonoBehaviour
     internal bool isLevelComplete;
 
     [SerializeField] private Transform bricksParentTransform, lifesParentTransform;
-    [SerializeField] private Ball ball;
     [SerializeField] private GameObject brickDeath_PS_Prefab;
     [SerializeField] private GameObject tapToContinue_Panel;
-    [SerializeField] private Player player;
 
+    private Player player;
+    private Ball ball;
     private int ballCount = 1;
     #endregion
 
@@ -47,9 +47,12 @@ public class GameHandler : MonoBehaviour
     private void Start()
     {
         Time.timeScale = 1f;
+        GameObject.Find("Ball").TryGetComponent<Ball>(out ball);
+        GameObject.Find("Player").TryGetComponent<Player>(out player);
         bricksList = bricksParentTransform.GetComponentsInChildren<Brick>().ToList();
 
-        PanelsHandler.instance.Modify_PauseBtn(true);
+        tapToContinue_Panel.SetActive(false);
+        PanelsHandler.instance.instructionPanel.SetActive(!PlayerPrefs.HasKey("FinishedLevel_Max"));//instruction panel will get being enabled until user finishes atleast one level
         StartCoroutine(WaitForInitialTap_Routine());
     }
 
@@ -57,9 +60,14 @@ public class GameHandler : MonoBehaviour
     {
         int touchCount = 0;
 
-        tapToContinue_Panel.SetActive(false);
+        while (PanelsHandler.instance.instructionPanel.activeInHierarchy)
+        {
+            yield return new WaitForSeconds(0.1f);
+        }
+
         yield return new WaitForSeconds(0.2f);
         tapToContinue_Panel.SetActive(true);
+        PanelsHandler.instance.Modify_PauseBtn(false);
 
         while (true)
         {
@@ -88,6 +96,7 @@ public class GameHandler : MonoBehaviour
             isBallMoving = true;
             ball.ApplyVelocity();
             tapToContinue_Panel.SetActive(false);
+            PanelsHandler.instance.Modify_PauseBtn(true);
         }
     }
 
@@ -115,18 +124,22 @@ public class GameHandler : MonoBehaviour
         }
     }
 
-    internal void Enable_BrickDeathPS(Vector3 instantiatePos)
+    internal void Enable_BrickDeathPS(Brick brick)
     {
         GameObject brickDeath_PS = Instantiate(brickDeath_PS_Prefab, null);
-        brickDeath_PS.transform.position = instantiatePos;
+        brickDeath_PS.transform.position = brick.transform.position;
+        ParticleSystem.MainModule mainModule = brickDeath_PS.GetComponent<ParticleSystem>().main;
+        mainModule.startColor = brick.GetComponent<SpriteRenderer>().color;
         Destroy(brickDeath_PS, 1);
     }
 
     internal void RemoveBrick(Brick brick)
     {
-        if (bricksList.Contains(brick)) bricksList.Remove(brick);
+        if (bricksList.Contains(brick))
+            bricksList.Remove(brick);
 
-        if (bricksList.Count == 0) GameOver();
+        if (bricksList.Count == 0)
+            LevelCompleted();
     }
 
     private void GameOver()
@@ -144,8 +157,13 @@ public class GameHandler : MonoBehaviour
         Time.timeScale = 0f;
         isLevelComplete = true;
         PanelsHandler.instance.SetPanel(PanelTypes.LevelComplete_Panel);
-    }
 
+        int finishedLevel_Max = PlayerPrefs.GetInt("FinishedLevel_Max", 0);
+        int currentLevel = Scenes_Handler.instance.Get_CurrentLevel();
+
+        if (finishedLevel_Max < currentLevel)
+            PlayerPrefs.SetInt("FinishedLevel_Max", currentLevel);
+    }
 
     private void OnDestroy()
     {

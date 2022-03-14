@@ -59,9 +59,8 @@ public class Powerups_Handler : MonoBehaviour
     private void SpawnPowerup(Powerups target_Powerup, int brickIndex)
     {
         Brick targetBrick = bricks[brickIndex];
-        GameObject powerup_Prefab = GetPrefab_Powerup(target_Powerup);
 
-        GameObject spawned_Powerup = Instantiate(powerup_Prefab);
+        GameObject spawned_Powerup = GetPrefab_Powerup(target_Powerup);
         spawned_Powerup.transform.parent = targetBrick.transform;
         spawned_Powerup.transform.localPosition = Vector3.zero;
         spawned_Powerup.SetActive(false);

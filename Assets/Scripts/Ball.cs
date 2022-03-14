@@ -12,8 +12,9 @@ public class Ball : MonoBehaviour
     [SerializeField] private float ballGeneration_Lifetime;
 
     [Header("Powerups' Particle Systems")]
-    [SerializeField] private GameObject randomDamage_PS;
     [SerializeField] private GameObject ballGeneration_PS;
+
+    [SerializeField] private Gradient normal_Gradient, damageRandomizer_Gradient;
 
     [SerializeField] private int damagePower = 1;
 
@@ -24,18 +25,24 @@ public class Ball : MonoBehaviour
     private SpriteRenderer ball_SpriteRenderer;
     private Coroutine randomDamage_Cor, ballGeneration_Cor, velocityMonitor_Cor;
     private float target_VelocityMagnitude;
+    private TrailRenderer ball_TrailRenderer;
+    private int initial_DamagePower;
     #endregion
 
     private void Awake()
     {
         ball_Rigidbody2D = GetComponent<Rigidbody2D>();
         ball_SpriteRenderer = GetComponent<SpriteRenderer>();
+        ball_TrailRenderer = GetComponent<TrailRenderer>();
+        initial_DamagePower = damagePower;
     }
 
     private void Start()
     {
         if (!isMainBall)
             ApplyVelocity();//Generate balls moves automatically after it is instantiated
+        else
+            ResetPose();
 
         target_VelocityMagnitude = (Vector2.one * initialVelocityStrength).magnitude;
 
@@ -45,8 +52,6 @@ public class Ball : MonoBehaviour
     private void OnEnable()
     {
         Player.OnPowerup += Player_OnPowerUp;
-
-        Initialize_InheritedPowerups();
     }
 
     private void OnDisable()
@@ -55,11 +60,6 @@ public class Ball : MonoBehaviour
         Player_OnPowerUp(Powerups.None);
 
         StopAllCoroutines();
-    }
-
-    private void Update()
-    {
-        //Debug.Log($"Velocity magnitude of ball:{ball_Rigidbody2D.velocity.magnitude},ball's name:{name}");
     }
 
     internal void Initialize_InheritedPowerups()
@@ -89,13 +89,7 @@ public class Ball : MonoBehaviour
         }
         else if (power == Powerups.None)
         {
-            ballGeneration_PS.SetActive(false);
-            randomDamage_PS.SetActive(false);
-
-            generateBallOnCollision = isDamageRandomized = false;
-
-            CheckAndStopCoroutine(ballGeneration_Cor);
-            CheckAndStopCoroutine(randomDamage_Cor);
+            Disable_AllPowerups();
         }
 
         void CheckAndStopCoroutine(Coroutine coroutine)
@@ -103,18 +97,27 @@ public class Ball : MonoBehaviour
             if (coroutine != null)
                 StopCoroutine(coroutine);
         }
+
+        void Disable_AllPowerups()
+        {
+            Disable_BallGeneration_Powerup();
+            Disable_RandomizeDamage_Powerup();
+
+            CheckAndStopCoroutine(ballGeneration_Cor);
+            CheckAndStopCoroutine(randomDamage_Cor);
+        }
     }
 
     private IEnumerator RandomizeDamage_Routine()
     {
         float waitSeconds, timePassed = 0f;
 
-        randomDamage_PS.SetActive(true);
+        Set_TrailRenderer(true);
         isDamageRandomized = true;
 
         while (true)
         {
-            damagePower = Random.Range(1, BrickHealth_Handler.instance.GetRandomHealth());
+            damagePower = Random.Range(2, ColorGradient_Handler.instance.maxHealth);
             SetColor();
 
             waitSeconds = Random.Range(0f, 1f);
@@ -123,10 +126,7 @@ public class Ball : MonoBehaviour
 
             if (timePassed >= randomDamage_Lifetime)
             {
-                randomDamage_PS.SetActive(false);
-                damagePower = 1;
-                isDamageRandomized = false;
-                SetColor();
+                Disable_RandomizeDamage_Powerup();
                 yield break;
             }
         }
@@ -137,6 +137,19 @@ public class Ball : MonoBehaviour
         generateBallOnCollision = true;
         ballGeneration_PS.SetActive(true);
         yield return new WaitForSeconds(ballGeneration_Lifetime);
+        Disable_BallGeneration_Powerup();
+    }
+
+    private void Disable_RandomizeDamage_Powerup()
+    {
+        Set_TrailRenderer(false);
+        damagePower = initial_DamagePower;
+        isDamageRandomized = false;
+        SetColor();
+    }
+
+    private void Disable_BallGeneration_Powerup()
+    {
         ballGeneration_PS.SetActive(false);
         generateBallOnCollision = false;
     }
@@ -256,7 +269,6 @@ public class Ball : MonoBehaviour
         }
         else if (collision.transform.CompareTag("Player"))
         {
-
             if (generateBallOnCollision)
             {
                 GenerateBalls(1);
@@ -287,6 +299,14 @@ public class Ball : MonoBehaviour
         }
 
         GameHandler.instance.BallCount--;
+    }
+
+    private void Set_TrailRenderer(bool set_DamageRandomizer_Gradient)
+    {
+        if (set_DamageRandomizer_Gradient)
+            ball_TrailRenderer.colorGradient = damageRandomizer_Gradient;
+        else
+            ball_TrailRenderer.colorGradient = normal_Gradient;
     }
 
     internal void ResetPose()

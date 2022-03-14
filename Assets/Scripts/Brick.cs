@@ -4,7 +4,8 @@ public class Brick : MonoBehaviour
 {
     #region Variables
     private SpriteRenderer spriteRenderer;
-    private int health;
+
+    [SerializeField] private int health;
     #endregion
 
     private void Start()
@@ -20,19 +21,19 @@ public class Brick : MonoBehaviour
     internal void DamageOccured(int damage)
     {
         health -= damage;
-        SetColor();
 
         if (health <= 0)
         {
             AudioPlayer.instance.PlayOneShot(Audios.Brick_Death);
 
             GameHandler.instance.RemoveBrick(this);
-            GameHandler.instance.Enable_BrickDeathPS(transform.position);
+            GameHandler.instance.Enable_BrickDeathPS(this);
             EnablePowerup();
             Destroy(gameObject);
         }
         else
         {
+            SetColor();
             AudioPlayer.instance.PlayOneShot(Audios.Ball_Hit);
         }
     }

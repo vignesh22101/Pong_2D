@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public enum Powerups { MultiBall, BallGenerator, DamageRandomizer, None };
 
@@ -38,7 +39,6 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
-
 #if UNITY_EDITOR
         if (Input.GetKeyUp(KeyCode.M))
             OnPowerup?.Invoke(Powerups.MultiBall);
@@ -49,8 +49,9 @@ public class Player : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.R))
             OnPowerup.Invoke(Powerups.DamageRandomizer);
 #endif
+        GameObject currSelectedObj = EventSystem.current.currentSelectedGameObject;//while tapping on UI player shouldn't move
 
-        if (!GameHandler.instance.isBallMoving)
+        if (!GameHandler.instance.isBallMoving && currSelectedObj!=null)
         {
             input = 0;
             return;
@@ -101,7 +102,9 @@ public class Player : MonoBehaviour
 
         //powerup is encountered
         OnPowerup?.Invoke(encounteredPowerup);
+
         AudioPlayer.instance.PlayOneShot(Audios.Powerup);
+
         Destroy(collision.gameObject);
     }
 }
