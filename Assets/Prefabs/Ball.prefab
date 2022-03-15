@@ -4942,7 +4942,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isMainBall: 1
+  damagePower: 1
   initialVelocityStrength: 3
+  velocityAdjustment_Sensitivity: 0.066
   randomDamage_Lifetime: 10
   ballGeneration_Lifetime: 10
   ballGeneration_PS: {fileID: 4620931096605527517}
@@ -5004,7 +5006,6 @@ MonoBehaviour:
     m_Mode: 0
     m_NumColorKeys: 8
     m_NumAlphaKeys: 2
-  damagePower: 1
 --- !u!96 &4620931098610798036
 TrailRenderer:
   serializedVersion: 2

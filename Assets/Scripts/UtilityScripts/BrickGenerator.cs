@@ -20,11 +20,12 @@ public class BrickGenerator : MonoBehaviour
 
         for (int i = 0; i < row; i++)
         {
-            position.y = startPos_Y - (i * spacingY);
+            position.y = startPos_Y - (i * spacingY);//moving downwards
 
             for (int j = 0; j < column; j++)
             {
-                position.x = (j * spacingX) + startPos_X;
+                position.x = (j * spacingX) + startPos_X;//moving rightwards
+
                 Instantiate(brickPrefab, position, Quaternion.identity, bricksCollection.transform).name = $"Brick {i} {j}";
             }
         }

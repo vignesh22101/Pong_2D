@@ -49,9 +49,10 @@ public class Player : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.R))
             OnPowerup.Invoke(Powerups.DamageRandomizer);
 #endif
+
         GameObject currSelectedObj = EventSystem.current.currentSelectedGameObject;//while tapping on UI player shouldn't move
 
-        if (!GameHandler.instance.isBallMoving && currSelectedObj!=null)
+        if (!GameHandler.instance.isBallMoving || currSelectedObj != null)
         {
             input = 0;
             return;

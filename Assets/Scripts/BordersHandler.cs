@@ -1,8 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// This script adjusts the borders in a way that borders surround
-/// the safe area
+/// This script adjusts the borders in a way that borders surround the safeArea
 /// </summary>
 public class BordersHandler : MonoBehaviour
 {
@@ -15,27 +14,27 @@ public class BordersHandler : MonoBehaviour
 
     private void Start()
     {
-        AdjustBorders();
+        InitializeBorders();
     }
 
-    private void AdjustBorders()
+    private void InitializeBorders()
     {
         float adjustmentFactor_Scale;
 
         adjustmentFactor_Scale = leftBorder.transform.localScale.x / borderSensitivity;
-        Vector3 leftEnd = ViewportToWorldPoint(new Vector3(0, 0.5f, 0));
+        Vector3 leftEnd = ViewportToWorldPoint(new Vector3(0f, 0.5f, 0f));
         AdjustBorder(leftBorder, (Vector3.left * adjustmentFactor_Scale) + leftEnd);
 
         adjustmentFactor_Scale = rightBorder.transform.localScale.x / borderSensitivity;
-        Vector3 rightEnd = Camera.main.ViewportToWorldPoint(new Vector3(1, 0.5f, 0));
+        Vector3 rightEnd = Camera.main.ViewportToWorldPoint(new Vector3(1f, 0.5f, 0f));
         AdjustBorder(rightBorder, (Vector3.right * adjustmentFactor_Scale) + rightEnd);
 
         adjustmentFactor_Scale = topBorder.transform.localScale.y / borderSensitivity;
-        Vector3 upperEnd = ViewportToWorldPoint(new Vector3(0.5f, Screen.safeArea.height / Screen.height, 0));
+        Vector3 upperEnd = ViewportToWorldPoint(new Vector3(0.5f, Screen.safeArea.height / Screen.height, 0f));
         AdjustBorder(topBorder, (Vector3.up * adjustmentFactor_Scale) + upperEnd);
 
         adjustmentFactor_Scale = bottomBorder.transform.localScale.y / borderSensitivity;
-        Vector3 lowerEnd = ViewportToWorldPoint(new Vector3(0.5f, 0, 0));
+        Vector3 lowerEnd = ViewportToWorldPoint(new Vector3(0.5f, 0f, 0f));
         AdjustBorder(bottomBorder, (Vector3.down * adjustmentFactor_Scale) + lowerEnd);
     }
 

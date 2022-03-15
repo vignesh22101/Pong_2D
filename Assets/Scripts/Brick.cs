@@ -27,7 +27,7 @@ public class Brick : MonoBehaviour
             AudioPlayer.instance.PlayOneShot(Audios.Brick_Death);
 
             GameHandler.instance.RemoveBrick(this);
-            GameHandler.instance.Enable_BrickDeathPS(this);
+
             EnablePowerup();
             Destroy(gameObject);
         }

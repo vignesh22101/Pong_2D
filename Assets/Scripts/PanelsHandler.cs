@@ -1,3 +1,4 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,7 +15,7 @@ public class PanelsHandler : MonoBehaviour
     [SerializeField] private GameObject pauseBtn, panel, headerBG;
     [SerializeField] private PanelData[] panelDatas;
     [SerializeField] private GameObject[] allBtns, allHeaders;
-    [SerializeField] private TextMeshProUGUI level_HeaderTxt;//displayed at level completion
+    [SerializeField] private TextMeshProUGUI levelComplete_Txt;//displayed at level completion
 
     [Header("Data for toggling sprites in a button")]
     [SerializeField] private Button music_Btn;
@@ -44,11 +45,12 @@ public class PanelsHandler : MonoBehaviour
     public void Clicked_ResumeBtn()
     {
         ModifyPanelState(false);
-        Time.timeScale = 1f;
+        StartCoroutine(ResumeGame_Routine());
     }
 
     public void Clicked_PauseBtn()
     {
+        StopAllCoroutines();
         Time.timeScale = 0f;
         SetPanel(PanelTypes.Pause_Panel);
     }
@@ -81,6 +83,12 @@ public class PanelsHandler : MonoBehaviour
     {
         ModifyPanelState(false);
     }
+
+    private IEnumerator ResumeGame_Routine()
+    {
+        yield return new WaitForSecondsRealtime(1f);
+        Time.timeScale = 1f;
+    }
     #endregion
 
     private void ToggleSprites(Button button, Sprite[] sprites)
@@ -107,8 +115,6 @@ public class PanelsHandler : MonoBehaviour
         Clean_Panel();
         ModifyPanelState(true);
 
-        AudioPlayer.instance.PlayOneShot(Audios.Pop);
-
         foreach (var panelData in panelDatas)
         {
             if (panelData.panelType == targetPanel)
@@ -120,7 +126,7 @@ public class PanelsHandler : MonoBehaviour
             }
         }
 
-        level_HeaderTxt.text = $"Level  {Scenes_Handler.instance.Get_CurrentLevel()} Completed";
+        levelComplete_Txt.text = $"Level  {Scenes_Handler.instance.Get_CurrentLevel()} Completed";
     }
 
     private void Clean_Panel()

@@ -5,26 +5,25 @@ public class Ball : MonoBehaviour
 {
     #region Variables
     [SerializeField] private bool isMainBall;//doesn't gets to destroyed
+    [SerializeField] private int damagePower = 1;
     [SerializeField] private float initialVelocityStrength;
+    [SerializeField] [Range(0, 1f)] private float velocityAdjustment_Sensitivity;
 
     [Header("PowerUps' Lifetime")]
     [SerializeField] private float randomDamage_Lifetime;
     [SerializeField] private float ballGeneration_Lifetime;
 
-    [Header("Powerups' Particle Systems")]
+    [Header("Powerups' Data")]
     [SerializeField] private GameObject ballGeneration_PS;
-
     [SerializeField] private Gradient normal_Gradient, damageRandomizer_Gradient;
 
-    [SerializeField] private int damagePower = 1;
-
-    private bool isMovementRepeating;//ball moves in only x axis/y axis continuously
+    private bool applyVelocity;
     private bool generateBallOnCollision;//when collided with player
     private bool isDamageRandomized;
     private Rigidbody2D ball_Rigidbody2D;
     private SpriteRenderer ball_SpriteRenderer;
     private Coroutine randomDamage_Cor, ballGeneration_Cor, velocityMonitor_Cor;
-    private float target_VelocityMagnitude;
+    private float target_VelocityMagnitude, current_VelocityMagnitude;
     private TrailRenderer ball_TrailRenderer;
     private int initial_DamagePower;
     #endregion
@@ -34,15 +33,19 @@ public class Ball : MonoBehaviour
         ball_Rigidbody2D = GetComponent<Rigidbody2D>();
         ball_SpriteRenderer = GetComponent<SpriteRenderer>();
         ball_TrailRenderer = GetComponent<TrailRenderer>();
-        initial_DamagePower = damagePower;
     }
 
     private void Start()
     {
-        if (!isMainBall)
-            ApplyVelocity();//Generate balls moves automatically after it is instantiated
-        else
+        if (isMainBall)
+        {
+            initial_DamagePower = damagePower;
             ResetPose();
+        }
+        else
+        {
+            ApplyVelocity();//Generate balls moves automatically after it is instantiated
+        }
 
         target_VelocityMagnitude = (Vector2.one * initialVelocityStrength).magnitude;
 
@@ -62,15 +65,13 @@ public class Ball : MonoBehaviour
         StopAllCoroutines();
     }
 
+    #region Powerups Management
     internal void Initialize_InheritedPowerups()
     {
         if (isDamageRandomized)
             Player_OnPowerUp(Powerups.DamageRandomizer);
-        if (generateBallOnCollision)
-            Player_OnPowerUp(Powerups.BallGenerator);
     }
 
-    #region Powerups
     private void Player_OnPowerUp(Powerups power)
     {
         if (power == Powerups.MultiBall)
@@ -108,6 +109,20 @@ public class Ball : MonoBehaviour
         }
     }
 
+    private void Disable_RandomizeDamage_Powerup()
+    {
+        damagePower = initial_DamagePower;
+        isDamageRandomized = false;
+        Set_TrailRenderer(false);
+        SetColor();
+    }
+
+    private void Disable_BallGeneration_Powerup()
+    {
+        ballGeneration_PS.SetActive(false);
+        generateBallOnCollision = false;
+    }
+
     private IEnumerator RandomizeDamage_Routine()
     {
         float waitSeconds, timePassed = 0f;
@@ -138,20 +153,6 @@ public class Ball : MonoBehaviour
         ballGeneration_PS.SetActive(true);
         yield return new WaitForSeconds(ballGeneration_Lifetime);
         Disable_BallGeneration_Powerup();
-    }
-
-    private void Disable_RandomizeDamage_Powerup()
-    {
-        Set_TrailRenderer(false);
-        damagePower = initial_DamagePower;
-        isDamageRandomized = false;
-        SetColor();
-    }
-
-    private void Disable_BallGeneration_Powerup()
-    {
-        ballGeneration_PS.SetActive(false);
-        generateBallOnCollision = false;
     }
 
     private void GenerateBalls(int ballCount)
@@ -185,16 +186,20 @@ public class Ball : MonoBehaviour
         Ball ball = (Instantiate(gameObject, transform.parent)).GetComponent<Ball>();
         ball.transform.localPosition = newPosition;
         ball.isMainBall = false;
+
         //Passing the powerups to the generated ball
         ball.isDamageRandomized = isDamageRandomized;
-        ball.generateBallOnCollision = generateBallOnCollision;
+        ball.generateBallOnCollision = false;//this power isn't passed
+        ball.initial_DamagePower = initial_DamagePower;
         ball.Initialize_InheritedPowerups();
+        ball.Disable_BallGeneration_Powerup();
 
         ball.ApplyVelocity_Random();
         GameHandler.instance.BallCount++;
     }
-    #endregion 
+    #endregion
 
+    #region Velocity Management
     internal void ApplyVelocity()
     {
         ball_Rigidbody2D.velocity = Vector2.one * initialVelocityStrength;
@@ -213,31 +218,30 @@ public class Ball : MonoBehaviour
     /// <summary>
     /// Sometimes the ball moves in a straight line => x or y axis
     /// This movement gets repeated over and over even after number of collisions with bounds/player
-    /// To resolve the issue and to give ball a constant velocity, this Routine was created
+    /// This Routine resolves this issue and others regarding ball movement 
     /// </summary>
     private IEnumerator VelocityMonitor_Routine()
     {
-        Vector2 ball_Velocity;
+        Vector2 ball_Velocity = ball_Rigidbody2D.velocity;
 
         while (true)
         {
             ball_Velocity = ball_Rigidbody2D.velocity;
+            current_VelocityMagnitude = ball_Velocity.magnitude;
 
-            if (ball_Velocity.x == 0 || ball_Velocity.y == 0)
-                isMovementRepeating = true;
+            if (Mathf.Abs(ball_Velocity.x) == 0 || Mathf.Abs(ball_Velocity.y) == 0)
+                applyVelocity = true;
 
-            if (PercentDifference(ball_Velocity.magnitude, target_VelocityMagnitude) > 10f)
+            if (PercentDifference(current_VelocityMagnitude, target_VelocityMagnitude) > 10f)
             {
-                ball_Velocity += new Vector2(ball_Velocity.x / 10f, ball_Velocity.y / 10f);
-                ball_Rigidbody2D.velocity = ball_Velocity;
+                ball_Rigidbody2D.velocity += ball_Velocity * velocityAdjustment_Sensitivity;
             }
-            else if (PercentDifference(ball_Velocity.magnitude, target_VelocityMagnitude) < -10f)
+            else if (PercentDifference(current_VelocityMagnitude, target_VelocityMagnitude) < -10f)
             {
-                ball_Velocity -= new Vector2(ball_Velocity.x / 10f, ball_Velocity.y / 10f);
-                ball_Rigidbody2D.velocity = ball_Velocity;
+                ball_Rigidbody2D.velocity -= ball_Velocity * velocityAdjustment_Sensitivity;
             }
 
-            yield return new WaitForSeconds(.01f);
+            yield return new WaitForSeconds(0.01f);
         }
 
         float PercentDifference(float currVal, float targetVal)
@@ -245,6 +249,7 @@ public class Ball : MonoBehaviour
             return ((targetVal - currVal) / currVal) * 100f;
         }
     }
+    #endregion
 
     /// <summary>
     /// Balls' color represents its damage power
@@ -254,37 +259,7 @@ public class Ball : MonoBehaviour
         ball_SpriteRenderer.color = ColorGradient_Handler.instance.GetColor(damagePower);
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.transform.CompareTag("Brick"))
-        {
-            collision.gameObject.TryGetComponent<Brick>(out Brick brick);
-
-            if (brick != null)
-                brick.DamageOccured(damagePower);
-        }
-        else if (collision.transform.CompareTag("Ground"))
-        {
-            CollidedGround();
-        }
-        else if (collision.transform.CompareTag("Player"))
-        {
-            if (generateBallOnCollision)
-            {
-                GenerateBalls(1);
-            }
-        }
-
-        AudioPlayer.instance.PlayOneShot(Audios.Ball_Hit);
-
-        if (isMovementRepeating)
-        {
-            ApplyVelocity();
-            isMovementRepeating = false;
-        }
-    }
-
-    private void CollidedGround()
+    private void GroundCollision()
     {
         if (!isMainBall)
         {
@@ -307,6 +282,39 @@ public class Ball : MonoBehaviour
             ball_TrailRenderer.colorGradient = damageRandomizer_Gradient;
         else
             ball_TrailRenderer.colorGradient = normal_Gradient;
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.transform.CompareTag("Brick"))
+        {
+            applyVelocity = false;
+
+            collision.gameObject.TryGetComponent<Brick>(out Brick brick);
+
+            if (brick != null)
+                brick.DamageOccured(damagePower);
+        }
+        else if (collision.transform.CompareTag("Ground"))
+        {
+            GroundCollision();
+        }
+        else if (collision.transform.CompareTag("Player"))
+        {
+            AudioPlayer.instance.PlayOneShot(Audios.Ball_Hit);
+
+            if (generateBallOnCollision)
+            {
+                Disable_BallGeneration_Powerup();
+                GenerateBalls(1);
+            }
+        }
+
+        if (applyVelocity)
+        {
+            ApplyVelocity();
+            applyVelocity = false;
+        }
     }
 
     internal void ResetPose()

@@ -11,6 +11,7 @@ public class MenuHandler : MonoBehaviour
     {
         confirmExit_Panel.SetActive(false);
         levelSelection_Panel.SetActive(false);
+
         Update_LevelSelection_Panel();
     }
 

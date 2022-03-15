@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public enum Audios { Brick_Death, Ball_Hit, Pop, Powerup };
+public enum Audios { Brick_Death, Ball_Hit, Powerup };
 
 public class AudioPlayer : MonoBehaviour
 {

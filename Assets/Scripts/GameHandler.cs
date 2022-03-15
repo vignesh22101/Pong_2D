@@ -25,14 +25,13 @@ public class GameHandler : MonoBehaviour
         }
     }
 
-    [SerializeField] internal bool randomize_BrickHealth = true;
+    [SerializeField] internal bool randomize_BrickHealth = false;
     [SerializeField] internal int playerLives;
 
     internal bool isLevelComplete;
 
     [SerializeField] private Transform bricksParentTransform, lifesParentTransform;
-    [SerializeField] private GameObject brickDeath_PS_Prefab;
-    [SerializeField] private GameObject tapToContinue_Panel;
+    [SerializeField] private GameObject brickDeath_PS_Prefab, tapToContinue_Panel;
 
     private Player player;
     private Ball ball;
@@ -50,10 +49,11 @@ public class GameHandler : MonoBehaviour
         GameObject.Find("Ball").TryGetComponent<Ball>(out ball);
         GameObject.Find("Player").TryGetComponent<Player>(out player);
         bricksList = bricksParentTransform.GetComponentsInChildren<Brick>().ToList();
-
         tapToContinue_Panel.SetActive(false);
-        PanelsHandler.instance.instructionPanel.SetActive(!PlayerPrefs.HasKey("FinishedLevel_Max"));//instruction panel will get being enabled until user finishes atleast one level
+        PanelsHandler.instance.instructionPanel.SetActive(!PlayerPrefs.HasKey("FinishedLevel_Max"));//instruction panel will get being enabled until user finishes first level
+
         StartCoroutine(WaitForInitialTap_Routine());
+        StartCoroutine(SpawnPowerups_Routine());
     }
 
     private IEnumerator WaitForInitialTap_Routine() //Tap to start => ball starts moving from the player 
@@ -100,6 +100,25 @@ public class GameHandler : MonoBehaviour
         }
     }
 
+    private IEnumerator SpawnPowerups_Routine()
+    {
+        while (!isBallMoving)
+        {
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        while (true)
+        {
+            yield return new WaitForSeconds(8f);
+
+            if (isBallMoving)
+            {
+                //let's spawn some powerups to help the user
+                Powerups_Handler.instance.Spawn_RandomPowerup();
+            }
+        }
+    }
+
     private void Respawn_Ball()
     {
         if (--playerLives > 0)
@@ -124,22 +143,29 @@ public class GameHandler : MonoBehaviour
         }
     }
 
-    internal void Enable_BrickDeathPS(Brick brick)
+    private void Enable_BrickDeathPS(Brick brick)
     {
         GameObject brickDeath_PS = Instantiate(brickDeath_PS_Prefab, null);
         brickDeath_PS.transform.position = brick.transform.position;
+
         ParticleSystem.MainModule mainModule = brickDeath_PS.GetComponent<ParticleSystem>().main;
         mainModule.startColor = brick.GetComponent<SpriteRenderer>().color;
+
         Destroy(brickDeath_PS, 1);
     }
 
     internal void RemoveBrick(Brick brick)
     {
+        Enable_BrickDeathPS(brick);
+
         if (bricksList.Contains(brick))
             bricksList.Remove(brick);
 
         if (bricksList.Count == 0)
-            LevelCompleted();
+        {
+            isLevelComplete = true;
+            Invoke("LevelCompleted", 1f);
+        }
     }
 
     private void GameOver()
@@ -152,10 +178,11 @@ public class GameHandler : MonoBehaviour
         }
     }
 
+    //Invoked function
     private void LevelCompleted()
     {
         Time.timeScale = 0f;
-        isLevelComplete = true;
+
         PanelsHandler.instance.SetPanel(PanelTypes.LevelComplete_Panel);
 
         int finishedLevel_Max = PlayerPrefs.GetInt("FinishedLevel_Max", 0);

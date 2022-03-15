@@ -9,6 +9,7 @@ TagManager:
   - MultiBall
   - BallGenerator
   - DamageRandomizer
+  - Border
   layers:
   - Default
   - TransparentFX
