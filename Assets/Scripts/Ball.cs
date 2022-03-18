@@ -259,7 +259,7 @@ public class Ball : MonoBehaviour
         ball_SpriteRenderer.color = ColorGradient_Handler.instance.GetColor(damagePower);
     }
 
-    private void GroundCollision()
+    private void Handle_GroundCollision()
     {
         if (!isMainBall)
         {
@@ -297,7 +297,8 @@ public class Ball : MonoBehaviour
         }
         else if (collision.transform.CompareTag("Ground"))
         {
-            GroundCollision();
+            Handle_GroundCollision();
+            applyVelocity = false;
         }
         else if (collision.transform.CompareTag("Player"))
         {

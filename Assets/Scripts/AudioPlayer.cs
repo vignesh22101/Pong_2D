@@ -27,6 +27,7 @@ public class AudioPlayer : MonoBehaviour
     internal void Change_SFX_State()
     {
         audioSource_SFX.mute = !audioSource_SFX.mute;
+        PlayerPrefs.SetInt("SFX", audioSource_SFX.mute ? 0 : 1);
     }
 
     internal void Change_Music_State()
@@ -35,6 +36,8 @@ public class AudioPlayer : MonoBehaviour
             audioSource_Music.Pause();
         else
             audioSource_Music.UnPause();
+
+        PlayerPrefs.SetInt("Music", audioSource_Music.isPlaying ? 1 : 0);
     }
 
     private AudioClip Get_AudioClip(Audios targetAudio)

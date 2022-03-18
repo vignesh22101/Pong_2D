@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/AgeConsent.unity
+    guid: a267cba3c17383f4cae1a89e1b21348f
+  - enabled: 1
     path: Assets/Scenes/PersistentData.unity
     guid: 659118804c2fd034d8db1a66f26952dd
   - enabled: 1

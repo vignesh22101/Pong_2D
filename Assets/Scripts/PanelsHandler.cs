@@ -10,9 +10,9 @@ public class PanelsHandler : MonoBehaviour
     #region Variables
     internal static PanelsHandler instance;
 
-    [SerializeField] internal GameObject instructionPanel;
+    [SerializeField] internal GameObject instructionPanel, tapToContinue_Panel;
 
-    [SerializeField] private GameObject pauseBtn, panel, headerBG;
+    [SerializeField] private GameObject pauseBtn, panel, headerBG, additionalSettings;
     [SerializeField] private PanelData[] panelDatas;
     [SerializeField] private GameObject[] allBtns, allHeaders;
     [SerializeField] private TextMeshProUGUI levelComplete_Txt;//displayed at level completion
@@ -21,6 +21,9 @@ public class PanelsHandler : MonoBehaviour
     [SerializeField] private Button music_Btn;
     [SerializeField] private Button SFX_Btn;
     [SerializeField] private Sprite[] music_Sprites, SFX_sprites;
+
+    [SerializeField] private Slider personalizedAds_Slider;
+    [SerializeField] private string privacyPolicyLink;
     #endregion
 
     private void Awake()
@@ -33,6 +36,15 @@ public class PanelsHandler : MonoBehaviour
         instructionPanel.SetActive(false);
         Modify_PauseBtn(false);
         Clean_Panel();
+        UpdateAudioBtns();
+    }
+
+    private void UpdateAudioBtns()
+    {
+        if (PlayerPrefs.GetInt("Music", 1) == 0)
+            Clicked_MusicBtn();
+        if (PlayerPrefs.GetInt("SFX", 1) == 0)
+            Clicked_SFXBtn();
     }
 
     #region ButtonFunctions
@@ -44,12 +56,15 @@ public class PanelsHandler : MonoBehaviour
 
     public void Clicked_ResumeBtn()
     {
+        AdManager.instance.DestroyAds();
+        AdManager.instance.LoadSpecific_Ads(load_BannerAd: true);
         ModifyPanelState(false);
         StartCoroutine(ResumeGame_Routine());
     }
 
     public void Clicked_PauseBtn()
     {
+        AdManager.instance.ShowAds(show_BannerAd: true);
         StopAllCoroutines();
         Time.timeScale = 0f;
         SetPanel(PanelTypes.Pause_Panel);
@@ -84,6 +99,16 @@ public class PanelsHandler : MonoBehaviour
         ModifyPanelState(false);
     }
 
+    public void ValueChanged_PersonalizedAds_Slider()
+    {
+        PlayerPrefs.SetInt("PersonalizedAds", (int)personalizedAds_Slider.value);
+    }
+
+    public void Clicked_PrivacyPolicyBtn()
+    {
+        Application.OpenURL(privacyPolicyLink);
+    }
+
     private IEnumerator ResumeGame_Routine()
     {
         yield return new WaitForSecondsRealtime(1f);
@@ -103,6 +128,7 @@ public class PanelsHandler : MonoBehaviour
     {
         panel.SetActive(targetState);
         headerBG.SetActive(targetState);
+        additionalSettings.SetActive(false);
     }
 
     internal void Modify_PauseBtn(bool targetState)
@@ -126,6 +152,7 @@ public class PanelsHandler : MonoBehaviour
             }
         }
 
+        personalizedAds_Slider.value = PlayerPrefs.GetInt("PersonalizedAds", 1);
         levelComplete_Txt.text = $"Level  {Scenes_Handler.instance.Get_CurrentLevel()} Completed";
     }
 

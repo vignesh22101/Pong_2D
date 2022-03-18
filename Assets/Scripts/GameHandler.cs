@@ -20,7 +20,7 @@ public class GameHandler : MonoBehaviour
             if (value == 0)
             {
                 isBallMoving = false;
-                Respawn_Ball();
+                Invoke("Respawn_Ball", 0.3f);
             }
         }
     }
@@ -30,21 +30,25 @@ public class GameHandler : MonoBehaviour
 
     internal bool isLevelComplete;
 
-    [SerializeField] private Transform bricksParentTransform, lifesParentTransform;
-    [SerializeField] private GameObject brickDeath_PS_Prefab, tapToContinue_Panel;
+    [SerializeField] private Transform bricksParentTransform;
+    [SerializeField] private GameObject brickDeath_PS_Prefab;
 
     private Player player;
     private Ball ball;
     private int ballCount = 1;
+    private GameObject tapToContinue_Panel;
     #endregion
 
     private void Awake()
     {
         instance = this;
+        tapToContinue_Panel = PanelsHandler.instance.tapToContinue_Panel;
     }
 
     private void Start()
     {
+        AdManager.instance.Pre_LoadAds();
+
         Time.timeScale = 1f;
         GameObject.Find("Ball").TryGetComponent<Ball>(out ball);
         GameObject.Find("Player").TryGetComponent<Player>(out player);
@@ -52,6 +56,7 @@ public class GameHandler : MonoBehaviour
         tapToContinue_Panel.SetActive(false);
         PanelsHandler.instance.instructionPanel.SetActive(!PlayerPrefs.HasKey("FinishedLevel_Max"));//instruction panel will get being enabled until user finishes first level
 
+        UpdateLives_UI();
         StartCoroutine(WaitForInitialTap_Routine());
         StartCoroutine(SpawnPowerups_Routine());
     }
@@ -93,6 +98,7 @@ public class GameHandler : MonoBehaviour
 
         void ApplyVelocity_Ball()
         {
+            print("applying velocity to ball");
             isBallMoving = true;
             ball.ApplyVelocity();
             tapToContinue_Panel.SetActive(false);
@@ -137,10 +143,8 @@ public class GameHandler : MonoBehaviour
 
     private void UpdateLives_UI()
     {
-        for (int i = 0; i < lifesParentTransform.childCount; i++)
-        {
-            lifesParentTransform.GetChild(i).gameObject.SetActive(i < playerLives);
-        }
+        LifePanel_Handler._transform.gameObject.SetActive(true);
+        LifePanel_Handler.UpdateLives_UI(playerLives);
     }
 
     private void Enable_BrickDeathPS(Brick brick)
@@ -172,6 +176,7 @@ public class GameHandler : MonoBehaviour
     {
         if (!isLevelComplete)
         {
+            AdManager.instance.ShowAds(show_BannerAd: true, show_InterstitialAd: true);
             Time.timeScale = 0f;
             player.GetComponent<Collider2D>().enabled = false;
             PanelsHandler.instance.SetPanel(PanelTypes.Gameover_Panel);
@@ -181,6 +186,7 @@ public class GameHandler : MonoBehaviour
     //Invoked function
     private void LevelCompleted()
     {
+        AdManager.instance.ShowAds(show_BannerAd: true, show_InterstitialAd: true);
         Time.timeScale = 0f;
 
         PanelsHandler.instance.SetPanel(PanelTypes.LevelComplete_Panel);
@@ -194,6 +200,9 @@ public class GameHandler : MonoBehaviour
 
     private void OnDestroy()
     {
+        AdManager.instance.DestroyAds();
         PanelsHandler.instance.Modify_PauseBtn(false);
+        tapToContinue_Panel.SetActive(false);
+        LifePanel_Handler._transform.gameObject.SetActive(false);
     }
 }

@@ -4,13 +4,13 @@ using UnityEngine.EventSystems;
 public class MenuHandler : MonoBehaviour
 {
     #region Variables
-    [SerializeField] private GameObject confirmExit_Panel, levelSelection_Panel, settingsBtn;
+    [SerializeField] private GameObject confirmExit_Panel, levelSelectionPanel, settingsBtn,levelsParent;
     #endregion
 
     private void Start()
     {
         confirmExit_Panel.SetActive(false);
-        levelSelection_Panel.SetActive(false);
+        levelSelectionPanel.SetActive(false);
 
         Update_LevelSelection_Panel();
     }
@@ -21,9 +21,9 @@ public class MenuHandler : MonoBehaviour
 
         for (int i = 0; i < finishedLevel_Max + 1; i++)
         {
-            if (i <= levelSelection_Panel.transform.childCount)
+            if (i <= levelsParent.transform.childCount)
             {
-                Transform childTransform = levelSelection_Panel.transform.GetChild(i);
+                Transform childTransform = levelsParent.transform.GetChild(i);
 
                 if (childTransform.childCount > 0) 
                     childTransform.GetChild(1).gameObject.SetActive(false);
@@ -35,7 +35,7 @@ public class MenuHandler : MonoBehaviour
     public void Clicked_StartBtn()
     {
         settingsBtn.SetActive(false);
-        levelSelection_Panel.SetActive(true);
+        levelSelectionPanel.SetActive(true);
     }
 
     public void Clicked_ExitBtn()
