@@ -29,7 +29,7 @@ public class Powerups_Handler : MonoBehaviour
     /// <summary>
     /// a random powerup gets instantiate from the top
     /// </summary>
-    internal void Spawn_RandomPowerup()
+    internal void Spawn_RandomPowerup_OnTop()
     {
         int randomInt = Random.Range(0, 100);
         Powerups targetPowerup;
@@ -72,12 +72,12 @@ public class Powerups_Handler : MonoBehaviour
         {
             if (multiBall_Count > 0)
             {
-                SpawnPowerup(Powerups.MultiBall, spawnIndex);
+                SpawnPowerup_InsideBrick(Powerups.MultiBall, spawnIndex);
                 multiBall_Count--;
             }
             else if (damageRandomizer_Count > 0)
             {
-                SpawnPowerup(Powerups.DamageRandomizer, spawnIndex);
+                SpawnPowerup_InsideBrick(Powerups.DamageRandomizer, spawnIndex);
                 damageRandomizer_Count--;
             }
         }
@@ -85,7 +85,7 @@ public class Powerups_Handler : MonoBehaviour
         powerups_Spawn_Indexes.Clear();
     }
 
-    private void SpawnPowerup(Powerups target_Powerup, int brickIndex)
+    private void SpawnPowerup_InsideBrick(Powerups target_Powerup, int brickIndex)
     {
         Brick targetBrick = bricks[brickIndex];
         GameObject powerup_Prefab = GetPowerup_Prefab(target_Powerup);

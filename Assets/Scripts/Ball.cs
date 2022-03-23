@@ -44,7 +44,7 @@ public class Ball : MonoBehaviour
         }
         else
         {
-            ApplyVelocity();//Generate balls moves automatically after it is instantiated
+            ApplyVelocity();//Generated balls moves automatically after it is instantiated
         }
 
         target_VelocityMagnitude = (Vector2.one * initialVelocityStrength).magnitude;
@@ -101,11 +101,11 @@ public class Ball : MonoBehaviour
 
         void Disable_AllPowerups()
         {
-            Disable_BallGeneration_Powerup();
-            Disable_RandomizeDamage_Powerup();
-
             CheckAndStopCoroutine(ballGeneration_Cor);
             CheckAndStopCoroutine(randomDamage_Cor);
+         
+            Disable_BallGeneration_Powerup();
+            Disable_RandomizeDamage_Powerup();
         }
     }
 

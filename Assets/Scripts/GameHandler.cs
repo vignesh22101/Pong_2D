@@ -120,7 +120,7 @@ public class GameHandler : MonoBehaviour
             if (isBallMoving)
             {
                 //let's spawn some powerups to help the user
-                Powerups_Handler.instance.Spawn_RandomPowerup();
+                Powerups_Handler.instance.Spawn_RandomPowerup_OnTop();
             }
         }
     }
