@@ -42,6 +42,7 @@ public class GameHandler : MonoBehaviour
     private void Awake()
     {
         instance = this;
+        bricksList = bricksParentTransform.GetComponentsInChildren<Brick>().ToList();
         tapToContinue_Panel = PanelsHandler.instance.tapToContinue_Panel;
     }
 
@@ -52,7 +53,6 @@ public class GameHandler : MonoBehaviour
         Time.timeScale = 1f;
         GameObject.Find("Ball").TryGetComponent<Ball>(out ball);
         GameObject.Find("Player").TryGetComponent<Player>(out player);
-        bricksList = bricksParentTransform.GetComponentsInChildren<Brick>().ToList();
         tapToContinue_Panel.SetActive(false);
         PanelsHandler.instance.instructionPanel.SetActive(!PlayerPrefs.HasKey("FinishedLevel_Max"));//instruction panel will get being enabled until user finishes first level
 
@@ -67,6 +67,7 @@ public class GameHandler : MonoBehaviour
 
         while (PanelsHandler.instance.instructionPanel.activeInHierarchy)
         {
+            print("Watiting till instruction panel goes off");
             yield return new WaitForSeconds(0.1f);
         }
 
